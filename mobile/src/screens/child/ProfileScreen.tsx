@@ -176,7 +176,7 @@ const ProfileScreen: React.FC = () => {
             )}
           </TouchableOpacity>
           <Text style={styles.userName}>{user?.name || '使用者'}</Text>
-          <Text style={styles.userRole}>長輩帳號</Text>
+          <Text style={styles.userRole}>子女帳號</Text>
         </View>
 
         {/* 基本資料 */}
@@ -205,10 +205,10 @@ const ProfileScreen: React.FC = () => {
 
           <View style={styles.infoItem}>
             <View style={styles.infoLabel}>
-              <Icon name="calendar-outline" size={20} color={Colors.textSecondary} />
-              <Text style={styles.infoLabelText}>出生日期</Text>
+              <Icon name="email-outline" size={20} color={Colors.textSecondary} />
+              <Text style={styles.infoLabelText}>電子郵件</Text>
             </View>
-            <Text style={styles.infoValue}>{formatDate(user?.birthDate)}</Text>
+            <Text style={styles.infoValue}>{user?.email || '未設定'}</Text>
           </View>
         </Card>
 
@@ -237,35 +237,6 @@ const ProfileScreen: React.FC = () => {
           </View>
         </Card>
 
-        {/* 統計資訊 */}
-        <Card style={styles.statsCard}>
-          <Text style={styles.sectionTitle}>成就統計</Text>
-
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Icon name="star" size={28} color={Colors.warning} />
-              <Text style={styles.statValue}>{user?.points || 0}</Text>
-              <Text style={styles.statLabel}>總點數</Text>
-            </View>
-
-            <View style={styles.statDivider} />
-
-            <View style={styles.statItem}>
-              <Icon name="trophy" size={28} color={Colors.primary} />
-              <Text style={styles.statValue}>0</Text>
-              <Text style={styles.statLabel}>成就數</Text>
-            </View>
-
-            <View style={styles.statDivider} />
-
-            <View style={styles.statItem}>
-              <Icon name="fire" size={28} color={Colors.error} />
-              <Text style={styles.statValue}>0</Text>
-              <Text style={styles.statLabel}>連續天數</Text>
-            </View>
-          </View>
-        </Card>
-
         {/* 操作按鈕 */}
         <Card style={styles.actionsCard}>
           <TouchableOpacity
@@ -277,7 +248,7 @@ const ProfileScreen: React.FC = () => {
             }}
           >
             <View style={styles.actionIcon}>
-              <Icon name="account-edit" size={20} color={Colors.primary} />
+              <Icon name="account-edit" size={20} color={Colors.secondary} />
             </View>
             <Text style={styles.actionText}>編輯個人資料</Text>
             <Icon name="chevron-right" size={24} color={Colors.textSecondary} />
@@ -454,7 +425,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -470,7 +441,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -536,34 +507,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.border,
-  },
-  statsCard: {
-    padding: Spacing.md,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: FontSizes.xl,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginTop: Spacing.sm,
-  },
-  statLabel: {
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-  },
-  statDivider: {
-    width: 1,
-    height: 60,
     backgroundColor: Colors.border,
   },
   actionsCard: {

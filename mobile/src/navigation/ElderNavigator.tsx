@@ -14,6 +14,7 @@ import BindingCodeScreen from '../screens/elder/BindingCodeScreen';
 import ProfileScreen from '../screens/elder/ProfileScreen';
 import RewardShopScreen from '../screens/elder/RewardShopScreen';
 import AchievementsScreen from '../screens/elder/AchievementsScreen';
+import NotificationSettingsScreen from '../screens/common/NotificationSettingsScreen';
 
 // 導航類型定義
 export type ElderTabParamList = {
@@ -29,6 +30,7 @@ export type ElderStackParamList = {
   Profile: undefined;
   RewardShop: undefined;
   Achievements: undefined;
+  NotificationSettings: undefined;
 };
 
 const Tab = createBottomTabNavigator<ElderTabParamList>();
@@ -112,6 +114,7 @@ const ElderNavigator: React.FC = () => {
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="RewardShop" component={RewardShopScreen} />
       <Stack.Screen name="Achievements" component={AchievementsScreen} />
+      <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
     </Stack.Navigator>
   );
 };

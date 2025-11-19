@@ -59,15 +59,38 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ['User'],
     }),
 
+    // 更新個人資料（別名）
+    updateProfile: builder.mutation<ApiResponse<User>, { name?: string; phone?: string }>({
+      query: (body) => ({
+        url: '/auth/me',
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['User'],
+    }),
+
+    // 上傳頭像
+    uploadAvatar: builder.mutation<ApiResponse<{ avatarUrl: string }>, FormData>({
+      query: (formData) => ({
+        url: '/auth/avatar',
+        method: 'POST',
+        body: formData,
+      }),
+      invalidatesTags: ['User'],
+    }),
+
     // 修改密碼
     changePassword: builder.mutation<
       ApiResponse<{ message: string }>,
-      { oldPassword: string; newPassword: string }
+      { currentPassword: string; newPassword: string }
     >({
       query: (body) => ({
         url: '/auth/change-password',
         method: 'POST',
-        body,
+        body: {
+          oldPassword: body.currentPassword,
+          newPassword: body.newPassword,
+        },
       }),
     }),
 
@@ -123,6 +146,8 @@ export const {
   useLogoutMutation,
   useGetMeQuery,
   useUpdateMeMutation,
+  useUpdateProfileMutation,
+  useUploadAvatarMutation,
   useChangePasswordMutation,
   useRegisterDeviceTokenMutation,
   useLazyCheckPhoneQuery,
