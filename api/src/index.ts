@@ -16,6 +16,11 @@ import oauthRoutes from './routes/oauth.routes';
 import bindingRoutes from './routes/binding.routes';
 import exerciseRoutes from './routes/exercise.routes';
 import notificationRoutes from './routes/notification.routes';
+import rewardRoutes from './routes/reward.routes';
+import achievementRoutes from './routes/achievement.routes';
+
+// 服務
+import { AchievementService } from './services/achievement.service';
 
 // 載入環境變數
 config();
@@ -59,8 +64,8 @@ app.use('/api/oauth', oauthRoutes);
 app.use('/api/binding', bindingRoutes);
 app.use('/api/exercise', exerciseRoutes);
 app.use('/api/notifications', notificationRoutes);
-// TODO: Phase 4 添加獎項路由
-// app.use('/api/rewards', rewardRoutes);
+app.use('/api/rewards', rewardRoutes);
+app.use('/api/achievements', achievementRoutes);
 // TODO: Phase 5 添加語音路由
 // app.use('/api/voice', voiceRoutes);
 
@@ -78,6 +83,9 @@ const startServer = async () => {
     // 測試資料庫連線
     await prisma.$connect();
     console.log('資料庫連線成功');
+
+    // 初始化系統成就
+    await AchievementService.initializeSystemAchievements();
 
     // 初始化定時任務
     CronService.initialize();

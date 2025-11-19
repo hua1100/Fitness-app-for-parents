@@ -105,6 +105,14 @@ const SettingsScreen: React.FC = () => {
     Alert.alert('提示', '通知設定功能即將推出');
   };
 
+  const handleRewardShop = () => {
+    navigation.navigate('RewardShop');
+  };
+
+  const handleAchievements = () => {
+    navigation.navigate('Achievements');
+  };
+
   const handleAbout = () => {
     Alert.alert(
       '關於應用',
@@ -144,8 +152,28 @@ const SettingsScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>功能</Text>
 
           <SettingItem
-            icon="qrcode"
+            icon="gift"
+            iconColor={Colors.warning}
+            title="獎項商城"
+            subtitle="使用點數兌換獎項"
+            onPress={handleRewardShop}
+          />
+
+          <View style={styles.divider} />
+
+          <SettingItem
+            icon="trophy"
             iconColor={Colors.primary}
+            title="我的成就"
+            subtitle="查看已獲得的成就徽章"
+            onPress={handleAchievements}
+          />
+
+          <View style={styles.divider} />
+
+          <SettingItem
+            icon="qrcode"
+            iconColor={Colors.secondary}
             title="綁定碼"
             subtitle="生成與子女綁定的代碼"
             onPress={handleBindingCode}
@@ -155,7 +183,7 @@ const SettingsScreen: React.FC = () => {
 
           <SettingItem
             icon="bell-outline"
-            iconColor={Colors.secondary}
+            iconColor={Colors.info}
             title="通知設定"
             subtitle="管理推播通知偏好"
             onPress={handleNotificationSettings}
