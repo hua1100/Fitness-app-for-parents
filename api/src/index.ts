@@ -18,6 +18,7 @@ import exerciseRoutes from './routes/exercise.routes';
 import notificationRoutes from './routes/notification.routes';
 import rewardRoutes from './routes/reward.routes';
 import achievementRoutes from './routes/achievement.routes';
+import voiceRoutes from './routes/voice.routes';
 
 // 服務
 import { AchievementService } from './services/achievement.service';
@@ -66,8 +67,7 @@ app.use('/api/exercise', exerciseRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/achievements', achievementRoutes);
-// TODO: Phase 5 添加語音路由
-// app.use('/api/voice', voiceRoutes);
+app.use('/api/voice', voiceRoutes);
 
 // 404 處理
 app.use(notFoundHandler);

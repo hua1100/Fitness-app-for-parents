@@ -12,6 +12,7 @@ import ElderDetailScreen from '../screens/child/ElderDetailScreen';
 import ChildNotificationScreen from '../screens/child/NotificationScreen';
 import ChildSettingsScreen from '../screens/child/SettingsScreen';
 import BindingInputScreen from '../screens/child/BindingInputScreen';
+import VoiceManageScreen from '../screens/child/VoiceManageScreen';
 
 // 導航類型定義
 export type ChildTabParamList = {
@@ -25,6 +26,7 @@ export type ChildStackParamList = {
   MainTabs: undefined;
   ElderDetail: { elderId: string; elderName: string };
   BindingInput: undefined;
+  VoiceManage: { elderId: string; elderName: string };
 };
 
 const Tab = createBottomTabNavigator<ChildTabParamList>();
@@ -106,6 +108,7 @@ const ChildNavigator: React.FC = () => {
       <Stack.Screen name="MainTabs" component={ChildTabNavigator} />
       <Stack.Screen name="ElderDetail" component={ElderDetailScreen} />
       <Stack.Screen name="BindingInput" component={BindingInputScreen} />
+      <Stack.Screen name="VoiceManage" component={VoiceManageScreen} />
     </Stack.Navigator>
   );
 };

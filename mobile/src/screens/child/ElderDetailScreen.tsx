@@ -8,17 +8,19 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { Card, Loading, ErrorMessage } from '../../components/common';
+import { Card, Button, Loading, ErrorMessage } from '../../components/common';
 import { Colors, FontSizes, Spacing } from '../../constants';
 import { useGetElderRecordsQuery, useGetElderStatsQuery } from '../../store/api/exerciseApi';
 import { ChildStackParamList } from '../../navigation/ChildNavigator';
 
 type RouteParams = RouteProp<ChildStackParamList, 'ElderDetail'>;
+type NavigationProp = NativeStackNavigationProp<ChildStackParamList, 'ElderDetail'>;
 
 const ElderDetailScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteParams>();
   const { elderId, elderName } = route.params;
   const [refreshing, setRefreshing] = useState(false);
@@ -147,6 +149,24 @@ const ElderDetailScreen: React.FC = () => {
           </View>
         </Card>
 
+        {/* 快速操作 */}
+        <Card style={styles.actionsCard}>
+          <Text style={styles.sectionTitle}>快速操作</Text>
+          <TouchableOpacity
+            style={styles.actionItem}
+            onPress={() => navigation.navigate('VoiceManage', { elderId, elderName })}
+          >
+            <View style={styles.actionIcon}>
+              <Icon name="microphone" size={24} color={Colors.secondary} />
+            </View>
+            <View style={styles.actionContent}>
+              <Text style={styles.actionTitle}>語音鼓勵</Text>
+              <Text style={styles.actionSubtitle}>錄製語音給 {elderName}</Text>
+            </View>
+            <Icon name="chevron-right" size={24} color={Colors.textSecondary} />
+          </TouchableOpacity>
+        </Card>
+
         {/* 運動記錄 */}
         <View style={styles.recordsSection}>
           <Text style={styles.sectionTitle}>最近運動</Text>
@@ -225,6 +245,37 @@ const styles = StyleSheet.create({
   statsCard: {
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
+  },
+  actionsCard: {
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  actionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.secondary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  actionContent: {
+    flex: 1,
+  },
+  actionTitle: {
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  actionSubtitle: {
+    fontSize: FontSizes.sm,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
   sectionTitle: {
     fontSize: FontSizes.md,
