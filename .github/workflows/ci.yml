@@ -1,0 +1,218 @@
+# CI/CD 工作流程
+# 在 push 和 pull request 時自動執行測試和檢查
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # 後端 API 測試
+  api-test:
+    name: API 測試
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fitness_app_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+
+      - name: 安裝依賴
+        working-directory: api
+        run: npm ci
+
+      - name: 執行 ESLint 檢查
+        working-directory: api
+        run: npm run lint
+
+      - name: 執行 TypeScript 類型檢查
+        working-directory: api
+        run: npx tsc --noEmit
+
+      - name: 執行 Prisma 生成
+        working-directory: api
+        run: npx prisma generate
+
+      - name: 執行資料庫遷移
+        working-directory: api
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fitness_app_test
+        run: npx prisma migrate deploy
+
+      - name: 執行單元測試
+        working-directory: api
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fitness_app_test
+          JWT_SECRET: test-jwt-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+          NODE_ENV: test
+          REDIS_URL: redis://localhost:6379
+        run: npm test -- --coverage --passWithNoTests
+
+      - name: 上傳測試覆蓋率報告
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-coverage
+          path: api/coverage/
+
+  # 移動端應用測試
+  mobile-test:
+    name: Mobile 測試
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: 安裝依賴
+        working-directory: mobile
+        run: npm ci
+
+      - name: 執行 ESLint 檢查
+        working-directory: mobile
+        run: npm run lint
+
+      - name: 執行 TypeScript 類型檢查
+        working-directory: mobile
+        run: npx tsc --noEmit
+
+      - name: 執行單元測試
+        working-directory: mobile
+        run: npm test -- --coverage --passWithNoTests
+
+      - name: 上傳測試覆蓋率報告
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-coverage
+          path: mobile/coverage/
+
+  # 後端建置檢查
+  api-build:
+    name: API 建置
+    runs-on: ubuntu-latest
+    needs: api-test
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+
+      - name: 安裝依賴
+        working-directory: api
+        run: npm ci
+
+      - name: 執行 Prisma 生成
+        working-directory: api
+        run: npx prisma generate
+
+      - name: 建置專案
+        working-directory: api
+        run: npm run build
+
+      - name: 上傳建置產物
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-build
+          path: api/dist/
+
+  # 程式碼品質檢查
+  code-quality:
+    name: 程式碼品質
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 檢查 API 格式
+        working-directory: api
+        run: |
+          npm ci
+          npx prettier --check "src/**/*.ts"
+
+      - name: 檢查 Mobile 格式
+        working-directory: mobile
+        run: |
+          npm ci
+          npx prettier --check "src/**/*.{ts,tsx}"
+
+  # 安全性檢查
+  security-audit:
+    name: 安全性檢查
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: API 依賴安全檢查
+        working-directory: api
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Mobile 依賴安全檢查
+        working-directory: mobile
+        run: npm audit --audit-level=high
+        continue-on-error: true
