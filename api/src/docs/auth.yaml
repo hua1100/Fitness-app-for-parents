@@ -1,0 +1,366 @@
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - 認證
+      summary: 註冊新用戶
+      description: 使用手機號碼、密碼和基本資料註冊新用戶
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - password
+                - name
+                - role
+              properties:
+                phone:
+                  type: string
+                  example: '0912345678'
+                  description: 手機號碼（台灣格式）
+                password:
+                  type: string
+                  minLength: 6
+                  example: 'password123'
+                  description: 密碼（至少6個字元）
+                name:
+                  type: string
+                  example: '王小明'
+                  description: 用戶姓名
+                role:
+                  type: string
+                  enum: [ELDER, CHILD]
+                  example: 'ELDER'
+                  description: 用戶角色
+      responses:
+        '201':
+          description: 註冊成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tokens:
+                        $ref: '#/components/schemas/Tokens'
+        '400':
+          description: 請求參數錯誤
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 手機號碼已被註冊
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      tags:
+        - 認證
+      summary: 用戶登入
+      description: 使用手機號碼和密碼登入
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - password
+              properties:
+                phone:
+                  type: string
+                  example: '0912345678'
+                password:
+                  type: string
+                  example: 'password123'
+      responses:
+        '200':
+          description: 登入成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tokens:
+                        $ref: '#/components/schemas/Tokens'
+        '401':
+          description: 手機號碼或密碼錯誤
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - 認證
+      summary: 刷新 Token
+      description: 使用 Refresh Token 取得新的 Access Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  description: Refresh Token
+      responses:
+        '200':
+          description: Token 刷新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                      refreshToken:
+                        type: string
+        '401':
+          description: Refresh Token 無效或已過期
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/logout:
+    post:
+      tags:
+        - 認證
+      summary: 用戶登出
+      description: 登出並撤銷 Token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 登出成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: '登出成功'
+
+  /api/auth/me:
+    get:
+      tags:
+        - 認證
+      summary: 取得當前用戶資訊
+      description: 取得已登入用戶的個人資料
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: 未認證
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/profile:
+    put:
+      tags:
+        - 認證
+      summary: 更新個人資料
+      description: 更新用戶的姓名或手機號碼
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: '新名字'
+                phone:
+                  type: string
+                  example: '0987654321'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+
+  /api/auth/avatar:
+    post:
+      tags:
+        - 認證
+      summary: 上傳頭像
+      description: 上傳用戶頭像圖片
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: 頭像圖片檔案
+      responses:
+        '200':
+          description: 上傳成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      avatarUrl:
+                        type: string
+                        description: 頭像 URL
+
+  /api/auth/password:
+    put:
+      tags:
+        - 認證
+      summary: 修改密碼
+      description: 修改用戶密碼
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currentPassword
+                - newPassword
+              properties:
+                currentPassword:
+                  type: string
+                  description: 目前密碼
+                newPassword:
+                  type: string
+                  minLength: 6
+                  description: 新密碼
+      responses:
+        '200':
+          description: 密碼修改成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: '密碼修改成功'
+        '400':
+          description: 目前密碼錯誤
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/device-token:
+    post:
+      tags:
+        - 認證
+      summary: 註冊裝置 Token
+      description: 註冊 FCM 裝置 Token 以接收推播通知
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - platform
+              properties:
+                token:
+                  type: string
+                  description: FCM Token
+                platform:
+                  type: string
+                  enum: [android, ios]
+                  description: 裝置平台
+      responses:
+        '200':
+          description: 註冊成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: '裝置 Token 註冊成功'

@@ -1,0 +1,304 @@
+paths:
+  /api/exercises/start:
+    post:
+      tags:
+        - 運動
+      summary: 開始運動
+      description: 長輩開始運動，系統會通知綁定的子女
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: 運動開始成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ExerciseRecord'
+        '400':
+          description: 已有進行中的運動
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/exercises/end:
+    post:
+      tags:
+        - 運動
+      summary: 結束運動
+      description: 結束進行中的運動，計算獲得的點數
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  description: 運動備註
+                  example: '今天感覺很好'
+      responses:
+        '200':
+          description: 運動結束成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ExerciseRecord'
+        '400':
+          description: 沒有進行中的運動
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/exercises/current:
+    get:
+      tags:
+        - 運動
+      summary: 取得進行中的運動
+      description: 取得當前用戶正在進行的運動記錄
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/ExerciseRecord'
+                      - type: 'null'
+
+  /api/exercises:
+    get:
+      tags:
+        - 運動
+      summary: 取得運動記錄列表
+      description: 取得用戶的運動記錄，支援分頁和日期篩選
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 頁碼
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: 每頁筆數
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 開始日期
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 結束日期
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExerciseRecord'
+                  meta:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/exercises/stats:
+    get:
+      tags:
+        - 運動
+      summary: 取得運動統計
+      description: 取得用戶的運動統計數據
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, all]
+            default: all
+          description: 統計期間
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      totalMinutes:
+                        type: integer
+                        description: 總運動時間（分鐘）
+                      totalPoints:
+                        type: integer
+                        description: 總獲得點數
+                      exerciseCount:
+                        type: integer
+                        description: 運動次數
+                      averageDuration:
+                        type: integer
+                        description: 平均運動時間（分鐘）
+                      currentStreak:
+                        type: integer
+                        description: 當前連續運動天數
+                      longestStreak:
+                        type: integer
+                        description: 最長連續運動天數
+
+  /api/exercises/emergency:
+    post:
+      tags:
+        - 運動
+      summary: 發送緊急求助
+      description: 長輩在運動中發送緊急求助，通知所有綁定的子女
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                  description: 緯度
+                  example: 25.0330
+                longitude:
+                  type: number
+                  description: 經度
+                  example: 121.5654
+      responses:
+        '200':
+          description: 緊急求助已發送
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      exerciseId:
+                        type: string
+        '400':
+          description: 沒有進行中的運動
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/exercises/emergency/cancel:
+    post:
+      tags:
+        - 運動
+      summary: 取消緊急求助
+      description: 取消已發送的緊急求助
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 緊急求助已取消
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /api/exercises/elder/{elderId}:
+    get:
+      tags:
+        - 運動
+      summary: 取得長輩運動記錄（子女用）
+      description: 子女查看綁定長輩的運動記錄
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: elderId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 長輩 ID
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExerciseRecord'
+                  meta:
+                    $ref: '#/components/schemas/Pagination'
+        '403':
+          description: 未與此長輩綁定
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

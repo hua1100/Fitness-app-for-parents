@@ -1,0 +1,196 @@
+paths:
+  /api/bindings/code:
+    get:
+      tags:
+        - 綁定
+      summary: 取得綁定碼
+      description: 長輩取得綁定碼供子女掃描
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      bindingCode:
+                        type: string
+                        example: 'ABC123'
+                        description: 6位數綁定碼
+
+  /api/bindings/code/refresh:
+    post:
+      tags:
+        - 綁定
+      summary: 重新產生綁定碼
+      description: 長輩重新產生新的綁定碼
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      bindingCode:
+                        type: string
+
+  /api/bindings/bind:
+    post:
+      tags:
+        - 綁定
+      summary: 綁定長輩
+      description: 子女使用綁定碼綁定長輩
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bindingCode
+              properties:
+                bindingCode:
+                  type: string
+                  example: 'ABC123'
+                  description: 長輩的綁定碼
+      responses:
+        '200':
+          description: 綁定成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Binding'
+        '404':
+          description: 綁定碼無效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 已綁定此長輩
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/bindings/unbind/{elderId}:
+    delete:
+      tags:
+        - 綁定
+      summary: 解除綁定
+      description: 解除與長輩的綁定關係
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: elderId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 長輩 ID
+      responses:
+        '200':
+          description: 解除綁定成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: '已解除綁定'
+
+  /api/bindings/elders:
+    get:
+      tags:
+        - 綁定
+      summary: 取得綁定的長輩列表
+      description: 子女取得已綁定的長輩列表
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        avatarUrl:
+                          type: string
+                        totalPoints:
+                          type: integer
+                        lastExercise:
+                          type: string
+                          format: date-time
+
+  /api/bindings/children:
+    get:
+      tags:
+        - 綁定
+      summary: 取得綁定的子女列表
+      description: 長輩取得已綁定的子女列表
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        avatarUrl:
+                          type: string
