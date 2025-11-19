@@ -1,26 +1,10 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// TODO: 在 Phase 3 添加實際頁面
-// import LoginScreen from '../screens/auth/LoginScreen';
-// import RegisterScreen from '../screens/auth/RegisterScreen';
-// import RoleSelectScreen from '../screens/auth/RoleSelectScreen';
-
-// 暫時使用佔位元件
-import { View, Text, StyleSheet } from 'react-native';
+import LoginScreen from '../screens/auth/LoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
+import RoleSelectScreen from '../screens/auth/RoleSelectScreen';
 import { Colors } from '../constants/colors';
-
-// 佔位頁面
-const PlaceholderScreen: React.FC<{ title: string }> = ({ title }) => (
-  <View style={styles.container}>
-    <Text style={styles.title}>{title}</Text>
-    <Text style={styles.subtitle}>頁面開發中...</Text>
-  </View>
-);
-
-const LoginScreen = () => <PlaceholderScreen title="登入" />;
-const RegisterScreen = () => <PlaceholderScreen title="註冊" />;
-const RoleSelectScreen = () => <PlaceholderScreen title="選擇角色" />;
 
 // 導航類型定義
 export type AuthStackParamList = {
@@ -75,25 +59,5 @@ const AuthNavigator: React.FC = () => {
     </Stack.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-    padding: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: Colors.textSecondary,
-  },
-});
 
 export default AuthNavigator;

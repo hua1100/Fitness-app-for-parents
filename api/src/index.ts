@@ -8,6 +8,13 @@ import { config } from 'dotenv';
 import { prisma } from './config/database';
 import { initializeWebSocket } from './websocket';
 import { errorHandler, notFoundHandler } from './middlewares/error.middleware';
+import { CronService } from './services/cron.service';
+
+// 路由
+import authRoutes from './routes/auth.routes';
+import bindingRoutes from './routes/binding.routes';
+import exerciseRoutes from './routes/exercise.routes';
+import notificationRoutes from './routes/notification.routes';
 
 // 載入環境變數
 config();
@@ -45,12 +52,14 @@ app.get('/api', (req, res) => {
   });
 });
 
-// TODO: 在 Phase 3 添加路由
-// app.use('/api/auth', authRoutes);
-// app.use('/api/binding', bindingRoutes);
-// app.use('/api/exercise', exerciseRoutes);
-// app.use('/api/notifications', notificationRoutes);
+// API 路由
+app.use('/api/auth', authRoutes);
+app.use('/api/binding', bindingRoutes);
+app.use('/api/exercise', exerciseRoutes);
+app.use('/api/notifications', notificationRoutes);
+// TODO: Phase 4 添加獎項路由
 // app.use('/api/rewards', rewardRoutes);
+// TODO: Phase 5 添加語音路由
 // app.use('/api/voice', voiceRoutes);
 
 // 404 處理
@@ -67,6 +76,9 @@ const startServer = async () => {
     // 測試資料庫連線
     await prisma.$connect();
     console.log('資料庫連線成功');
+
+    // 初始化定時任務
+    CronService.initialize();
 
     httpServer.listen(PORT, () => {
       console.log(`伺服器運行於 http://localhost:${PORT}`);

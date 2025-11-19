@@ -12,13 +12,9 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { baseApi } from './api/baseApi';
-// TODO: 在 Phase 3 添加 slices
-// import authReducer from './slices/authSlice';
-// import exerciseReducer from './slices/exerciseSlice';
-// import notificationReducer from './slices/notificationSlice';
-// import rewardReducer from './slices/rewardSlice';
-// import voiceReducer from './slices/voiceSlice';
-// import bindingReducer from './slices/bindingSlice';
+import authReducer from './slices/authSlice';
+import exerciseReducer from './slices/exerciseSlice';
+import notificationReducer from './slices/notificationSlice';
 
 // 持久化配置
 const persistConfig = {
@@ -32,13 +28,9 @@ const persistConfig = {
 // 合併 reducers
 const rootReducer = combineReducers({
   [baseApi.reducerPath]: baseApi.reducer,
-  // TODO: 在 Phase 3 添加 reducers
-  // auth: authReducer,
-  // exercise: exerciseReducer,
-  // notification: notificationReducer,
-  // reward: rewardReducer,
-  // voice: voiceReducer,
-  // binding: bindingReducer,
+  auth: authReducer,
+  exercise: exerciseReducer,
+  notification: notificationReducer,
 });
 
 // 持久化 reducer
