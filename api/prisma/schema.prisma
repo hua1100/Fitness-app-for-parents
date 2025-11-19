@@ -1,0 +1,265 @@
+// Prisma Schema
+// 長輩運動關懷應用程式資料模型
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用戶角色列舉
+enum UserRole {
+  ELDER
+  CHILD
+}
+
+// 運動狀態列舉
+enum ExerciseStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  EMERGENCY
+}
+
+// 通知類型列舉
+enum NotificationType {
+  EXERCISE_START
+  EXERCISE_END
+  EMERGENCY
+  INACTIVITY
+  ACHIEVEMENT
+  REWARD_REDEEMED
+  VOICE_NEW
+  SYSTEM
+}
+
+// 緊急狀態列舉
+enum EmergencyStatus {
+  ACTIVE
+  CANCELLED
+  RESOLVED
+}
+
+// ========== 用戶相關 ==========
+
+// 用戶表
+model User {
+  id            String   @id @default(cuid())
+  phone         String   @unique
+  passwordHash  String
+  name          String
+  role          UserRole
+  avatarUrl     String?
+  totalPoints   Int      @default(0)
+  lastActiveAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 關聯
+  elderBindings    Binding[]         @relation("ElderBindings")
+  childBindings    Binding[]         @relation("ChildBindings")
+  exerciseRecords  ExerciseRecord[]
+  notifications    Notification[]
+  redeemedRewards  RedeemedReward[]
+  userAchievements UserAchievement[]
+  voiceMessages    VoiceMessage[]    @relation("VoiceSender")
+  receivedVoices   VoiceMessage[]    @relation("VoiceReceiver")
+  deviceTokens     DeviceToken[]
+  createdRewards   Reward[]          @relation("RewardCreator")
+  targetRewards    Reward[]          @relation("RewardTarget")
+
+  @@index([phone])
+  @@index([role])
+  @@index([lastActiveAt])
+}
+
+// 綁定表（長輩與子女關係）
+model Binding {
+  id          String   @id @default(cuid())
+  elderId     String
+  childId     String
+  bindingCode String?
+  confirmedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 關聯
+  elder User @relation("ElderBindings", fields: [elderId], references: [id], onDelete: Cascade)
+  child User @relation("ChildBindings", fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([elderId, childId])
+  @@index([elderId])
+  @@index([childId])
+  @@index([bindingCode])
+}
+
+// 裝置 Token 表（FCM 推播）
+model DeviceToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String   // ios, android
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ========== 運動相關 ==========
+
+// 運動記錄表
+model ExerciseRecord {
+  id              String          @id @default(cuid())
+  userId          String
+  startTime       DateTime
+  endTime         DateTime?
+  durationMinutes Int?
+  status          ExerciseStatus  @default(IN_PROGRESS)
+  pointsEarned    Int             @default(0)
+  emergencyStatus EmergencyStatus?
+  emergencyLat    Float?
+  emergencyLng    Float?
+  emergencyTime   DateTime?
+  note            String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // 關聯
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([startTime])
+  @@index([status])
+  @@index([userId, startTime])
+}
+
+// ========== 通知相關 ==========
+
+// 通知表
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  // 關聯
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([userId, isRead])
+}
+
+// ========== 獎項相關 ==========
+
+// 獎項表
+model Reward {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  pointsCost  Int
+  iconUrl     String?
+  isSystem    Boolean  @default(false)
+  createdBy   String?
+  targetUserId String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 關聯
+  creator         User?            @relation("RewardCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  targetUser      User?            @relation("RewardTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  redeemedRewards RedeemedReward[]
+
+  @@index([isSystem])
+  @@index([createdBy])
+  @@index([targetUserId])
+  @@index([isActive])
+}
+
+// 已兌換獎項表
+model RedeemedReward {
+  id         String   @id @default(cuid())
+  userId     String
+  rewardId   String
+  redeemedAt DateTime @default(now())
+
+  // 關聯
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([rewardId])
+  @@index([redeemedAt])
+}
+
+// ========== 成就相關 ==========
+
+// 成就表
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String
+  iconUrl     String?
+  condition   Json     // 解鎖條件
+  pointsBonus Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  // 關聯
+  userAchievements UserAchievement[]
+
+  @@index([code])
+}
+
+// 用戶成就表
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+  progress      Int      @default(0)
+
+  // 關聯
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+// ========== 語音相關 ==========
+
+// 語音訊息表
+model VoiceMessage {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  fileUrl     String
+  duration    Int      // 秒數
+  playCount   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 關聯
+  sender   User @relation("VoiceSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("VoiceReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([isActive])
+  @@index([receiverId, isActive])
+}
