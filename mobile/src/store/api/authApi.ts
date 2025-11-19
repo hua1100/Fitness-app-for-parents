@@ -87,6 +87,32 @@ export const authApi = baseApi.injectEndpoints({
     checkPhone: builder.query<ApiResponse<{ exists: boolean }>, string>({
       query: (phone) => `/auth/check-phone?phone=${phone}`,
     }),
+
+    // Line 登入
+    lineLogin: builder.mutation<
+      ApiResponse<LoginResponse>,
+      { accessToken: string; role: 'ELDER' | 'CHILD' }
+    >({
+      query: (body) => ({
+        url: '/oauth/line/login',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Auth'],
+    }),
+
+    // Google 登入
+    googleLogin: builder.mutation<
+      ApiResponse<LoginResponse>,
+      { idToken: string; role: 'ELDER' | 'CHILD' }
+    >({
+      query: (body) => ({
+        url: '/oauth/google/login',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Auth'],
+    }),
   }),
 });
 
@@ -100,4 +126,6 @@ export const {
   useChangePasswordMutation,
   useRegisterDeviceTokenMutation,
   useLazyCheckPhoneQuery,
+  useLineLoginMutation,
+  useGoogleLoginMutation,
 } = authApi;

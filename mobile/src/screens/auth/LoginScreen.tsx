@@ -11,12 +11,13 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { Button, Input, Loading } from '../../components/common';
+import { Button, Input, Loading, SocialLoginButtons } from '../../components/common';
 import { Colors, FontSizes, Spacing } from '../../constants';
-import { useLoginMutation } from '../../store/api/authApi';
+import { useLoginMutation, useLineLoginMutation, useGoogleLoginMutation } from '../../store/api/authApi';
 import { useAppDispatch } from '../../store';
 import { setUser } from '../../store/slices/authSlice';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { SocialAuthService } from '../../services/socialAuth.service';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -29,6 +30,8 @@ const LoginScreen: React.FC<Props> = ({ navigation, route }) => {
   const [errors, setErrors] = useState<{ phone?: string; password?: string }>({});
 
   const [login, { isLoading }] = useLoginMutation();
+  const [lineLogin, { isLoading: isLineLoading }] = useLineLoginMutation();
+  const [googleLogin, { isLoading: isGoogleLoading }] = useGoogleLoginMutation();
 
   const validate = (): boolean => {
     const newErrors: { phone?: string; password?: string } = {};
@@ -76,6 +79,62 @@ const LoginScreen: React.FC<Props> = ({ navigation, route }) => {
   const goToRegister = () => {
     navigation.navigate('Register', { role });
   };
+
+  // Line 登入處理
+  const handleLineLogin = async () => {
+    try {
+      const lineResult = await SocialAuthService.loginWithLine();
+      const result = await lineLogin({
+        accessToken: lineResult.accessToken,
+        role,
+      }).unwrap();
+
+      if (result.success && result.data) {
+        const { user, tokens } = result.data;
+
+        // 儲存 tokens
+        await AsyncStorage.setItem('accessToken', tokens.accessToken);
+        await AsyncStorage.setItem('refreshToken', tokens.refreshToken);
+        await AsyncStorage.setItem('userRole', user.role);
+        await AsyncStorage.setItem('userId', user.id);
+
+        // 更新 Redux state
+        dispatch(setUser(user));
+      }
+    } catch (error: any) {
+      const message = error.data?.error?.message || error.message || 'Line 登入失敗';
+      Alert.alert('登入失敗', message);
+    }
+  };
+
+  // Google 登入處理
+  const handleGoogleLogin = async () => {
+    try {
+      const googleResult = await SocialAuthService.loginWithGoogle();
+      const result = await googleLogin({
+        idToken: googleResult.idToken,
+        role,
+      }).unwrap();
+
+      if (result.success && result.data) {
+        const { user, tokens } = result.data;
+
+        // 儲存 tokens
+        await AsyncStorage.setItem('accessToken', tokens.accessToken);
+        await AsyncStorage.setItem('refreshToken', tokens.refreshToken);
+        await AsyncStorage.setItem('userRole', user.role);
+        await AsyncStorage.setItem('userId', user.id);
+
+        // 更新 Redux state
+        dispatch(setUser(user));
+      }
+    } catch (error: any) {
+      const message = error.data?.error?.message || error.message || 'Google 登入失敗';
+      Alert.alert('登入失敗', message);
+    }
+  };
+
+  const isSocialLoading = isLineLoading || isGoogleLoading;
 
   return (
     <KeyboardAvoidingView
@@ -130,10 +189,23 @@ const LoginScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={goToRegister}
             style={styles.registerButton}
           />
+
+          <SocialLoginButtons
+            onLineLogin={handleLineLogin}
+            onGoogleLogin={handleGoogleLogin}
+            isLineLoading={isLineLoading}
+            isGoogleLoading={isGoogleLoading}
+            disabled={isLoading || isSocialLoading}
+          />
         </View>
       </ScrollView>
 
-      {isLoading && <Loading overlay message="登入中..." />}
+      {(isLoading || isSocialLoading) && (
+        <Loading
+          overlay
+          message={isLineLoading ? 'Line 登入中...' : isGoogleLoading ? 'Google 登入中...' : '登入中...'}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 };

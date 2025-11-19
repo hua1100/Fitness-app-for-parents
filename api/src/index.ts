@@ -12,6 +12,7 @@ import { CronService } from './services/cron.service';
 
 // 路由
 import authRoutes from './routes/auth.routes';
+import oauthRoutes from './routes/oauth.routes';
 import bindingRoutes from './routes/binding.routes';
 import exerciseRoutes from './routes/exercise.routes';
 import notificationRoutes from './routes/notification.routes';
@@ -54,6 +55,7 @@ app.get('/api', (req, res) => {
 
 // API 路由
 app.use('/api/auth', authRoutes);
+app.use('/api/oauth', oauthRoutes);
 app.use('/api/binding', bindingRoutes);
 app.use('/api/exercise', exerciseRoutes);
 app.use('/api/notifications', notificationRoutes);
