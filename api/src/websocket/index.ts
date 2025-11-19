@@ -2,6 +2,7 @@ import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { verifyAccessToken, extractTokenFromHeader } from '../utils/jwt.util';
 import { prisma } from '../config/database';
+import { setupEmergencyHandlers } from './emergency.handler';
 
 // WebSocket 伺服器實例
 let io: Server | null = null;
@@ -103,6 +104,9 @@ export const initializeWebSocket = (httpServer: HttpServer): Server => {
       console.error(`Socket 錯誤 (${userId}):`, error);
     });
   });
+
+  // 設置緊急求助處理器
+  setupEmergencyHandlers(io);
 
   console.log('WebSocket 伺服器初始化完成');
   return io;

@@ -121,6 +121,24 @@ class WebSocketServiceClass extends EventEmitter {
       console.log('長輩結束運動:', data);
       this.emit('exercise:end', data);
     });
+
+    // 緊急求助已觸發確認
+    this.socket.on('emergency:triggered', (data: any) => {
+      console.log('緊急求助已發送:', data);
+      this.emit('emergency:triggered', data);
+    });
+
+    // 緊急求助已取消確認
+    this.socket.on('emergency:cancelled', (data: any) => {
+      console.log('緊急求助已取消:', data);
+      this.emit('emergency:cancelled', data);
+    });
+
+    // 子女確認收到緊急求助（長輩收到）
+    this.socket.on('emergency:acknowledged', (data: any) => {
+      console.log('子女已收到緊急求助:', data);
+      this.emit('emergency:acknowledged', data);
+    });
   }
 
   // 斷開連線
@@ -159,6 +177,36 @@ class WebSocketServiceClass extends EventEmitter {
       this.socket.emit(event, data);
     } else {
       console.warn('WebSocket 未連線，無法發送事件');
+    }
+  }
+
+  // 觸發緊急求助（長輩用）
+  triggerEmergency(location?: { latitude: number; longitude: number }): void {
+    if (this.socket?.connected) {
+      this.socket.emit('emergency:trigger', { location });
+      console.log('發送緊急求助');
+    } else {
+      console.warn('WebSocket 未連線，無法發送緊急求助');
+    }
+  }
+
+  // 取消緊急求助（長輩用）
+  cancelEmergency(): void {
+    if (this.socket?.connected) {
+      this.socket.emit('emergency:cancel');
+      console.log('取消緊急求助');
+    } else {
+      console.warn('WebSocket 未連線，無法取消緊急求助');
+    }
+  }
+
+  // 確認收到緊急求助（子女用）
+  acknowledgeEmergency(elderId: string): void {
+    if (this.socket?.connected) {
+      this.socket.emit('emergency:acknowledge', { elderId });
+      console.log(`確認收到長輩 ${elderId} 的緊急求助`);
+    } else {
+      console.warn('WebSocket 未連線，無法確認緊急求助');
     }
   }
 
