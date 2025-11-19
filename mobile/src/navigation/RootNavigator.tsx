@@ -4,9 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AuthNavigator from './AuthNavigator';
-// TODO: 在 Phase 3 添加導航器
-// import ElderNavigator from './ElderNavigator';
-// import ChildNavigator from './ChildNavigator';
+import ElderNavigator from './ElderNavigator';
+import ChildNavigator from './ChildNavigator';
 
 // 載入畫面
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
@@ -66,11 +65,9 @@ const RootNavigator: React.FC = () => {
         {!userRole ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
         ) : userRole === 'ELDER' ? (
-          // TODO: 替換為 ElderNavigator
-          <Stack.Screen name="ElderMain" component={AuthNavigator} />
+          <Stack.Screen name="ElderMain" component={ElderNavigator} />
         ) : (
-          // TODO: 替換為 ChildNavigator
-          <Stack.Screen name="ChildMain" component={AuthNavigator} />
+          <Stack.Screen name="ChildMain" component={ChildNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
